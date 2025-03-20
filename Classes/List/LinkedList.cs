@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text.Json;
 using GenericsIntermediateRepetisjon.Classes.Node;
 using GenericsIntermediateRepetisjon.Interfaces.List;
@@ -14,7 +15,7 @@ namespace GenericsIntermediateRepetisjon.Classes.List;
 /// perlen vi vil ha. 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class MyLinkedList<T> : IAddible<T>, IContains<T>, IPrintable, IRemoveable<T>, ICountable, IIndexable<T>
+public class MyLinkedList<T> : IAddible<T>, IContains<T>, IPrintable, IRemoveable<T>, ICountable, IIndexable<T>, IEnumerable<T?>
 {
     /// <summary>
     /// Dette representerer startpunktet på listen vår, den kan gjøres private, så lenge vi passer på å lage gode
@@ -235,5 +236,42 @@ public class MyLinkedList<T> : IAddible<T>, IContains<T>, IPrintable, IRemoveabl
             innerCount++;
         }
         return current!.Data;
+    }
+
+    /// <summary>
+    /// For å tilgjengeliggjøre alle kolleksjonsmetodene som eksisterer
+    /// kan vi også implementere IEnumerable interfacen i C#
+    /// IEnumeratoren som vi returnerer her, skal bare fortelle IEnumerable<T> interfacen vår
+    /// hvordan den skal kunne hente data T fra hvert element i listen vår. 
+    /// Så for å implementere den, så kan vi ta i bruk en enkel itereringsmetode,
+    /// som itererer gjennom listen vår, og yielder dataen fra hvert element
+    /// ut til IEnumerable iteratoren.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator<T?> GetEnumerator()
+    {
+        var current = _head;
+        while (current != null)
+        {
+            /* Yield er et litt spesielt nøkkelord, som i dette tilfellet
+            lar oss både returne dataen på punktet vi er, men også bookmarker hvor i iterasjonen vi er,
+            slik at IEnumerable interfacen vår kan fortsette der den slapp.
+            
+            Du kan se for det at hver gang iteratoren treffer yield return statementet returnerer den
+            verdien fra current.Data, men husker hvor i iterasjonen den var, slik at når neste element er kallet,
+            starter den fra det gjeldende "bookmarket" og ikke helt i fra starten av while loopen. */
+            yield return current.Data;
+            current = current.Next;
+        }
+    }
+
+    /// <summary>
+    /// Denne generiske IEnumerator metoden er krevd av IEnumerable<T> interfacen
+    /// Den kaller bare den interne GetEnumerator() metoden.
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
